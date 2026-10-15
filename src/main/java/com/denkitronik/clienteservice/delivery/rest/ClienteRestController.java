@@ -5,7 +5,6 @@ import com.denkitronik.clienteservice.domain.entities.Region;
 import com.denkitronik.clienteservice.domain.services.IClienteService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -16,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -27,51 +25,31 @@ public class ClienteRestController {
     @Autowired
     private IClienteService clienteService;
 
-    // GET /clientes — lista sin paginar (compatible con el frontend)
     @GetMapping("/clientes")
     public ResponseEntity<List<Cliente>> listarClientes() {
         return ResponseEntity.ok(clienteService.findAll());
     }
 
-    // GET /clientes/page/{page} — lista paginada, 4 elementos por página
     @GetMapping("/clientes/page/{page}")
     public ResponseEntity<Page<Cliente>> listarClientesPaginado(@PathVariable Integer page) {
-        Page<Cliente> clientes = clienteService.findAll(PageRequest.of(page, 4));
-        return ResponseEntity.ok(clientes);
+        return ResponseEntity.ok(clienteService.findAll(PageRequest.of(page, 4)));
     }
 
-    // GET /clientes/{id}
     @GetMapping("/clientes/{id}")
-    public ResponseEntity<?> buscarCliente(@PathVariable Long id) {
-        Optional<Cliente> cliente = clienteService.findById(id);
-        if (!cliente.isPresent()) {
-            Map<String, Object> error = new HashMap<>();
-            error.put("mensaje", "El cliente ID: ".concat(id.toString())
-                      .concat(" no existe en la base de datos"));
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
-        }
-        return ResponseEntity.ok(cliente.get());
+    public ResponseEntity<Cliente> buscarCliente(@PathVariable Long id) {
+        // Si no existe: ClienteNotFoundException -> GlobalExceptionHandler -> 404
+        return ResponseEntity.ok(clienteService.findById(id));
     }
 
-    // POST /clientes
     @PostMapping("/clientes")
     public ResponseEntity<?> crearCliente(@Valid @RequestBody Cliente cliente,
                                           BindingResult result) {
         if (result.hasErrors()) {
             return ResponseEntity.badRequest().body(construirErrores(result));
         }
-        try {
-            Cliente nuevo = clienteService.save(cliente);
-            return ResponseEntity.status(HttpStatus.CREATED).body(nuevo);
-        } catch (DataAccessException e) {
-            Map<String, Object> error = new HashMap<>();
-            error.put("mensaje", "Error al guardar el cliente en la base de datos");
-            error.put("error", e.getMostSpecificCause().getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
-        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(clienteService.save(cliente));
     }
 
-    // PUT /clientes/{id}
     @PutMapping("/clientes/{id}")
     public ResponseEntity<?> actualizarCliente(@Valid @RequestBody Cliente cliente,
                                                BindingResult result,
@@ -79,49 +57,26 @@ public class ClienteRestController {
         if (result.hasErrors()) {
             return ResponseEntity.badRequest().body(construirErrores(result));
         }
-        if (!clienteService.findById(id).isPresent()) {
-            Map<String, Object> error = new HashMap<>();
-            error.put("mensaje", "El cliente ID: ".concat(id.toString())
-                      .concat(" no existe en la base de datos"));
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
-        }
-        try {
-            return ResponseEntity.status(HttpStatus.CREATED).body(clienteService.update(id, cliente));
-        } catch (DataAccessException e) {
-            Map<String, Object> error = new HashMap<>();
-            error.put("mensaje", "Error al actualizar el cliente en la base de datos");
-            error.put("error", e.getMostSpecificCause().getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
-        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(clienteService.update(id, cliente));
     }
 
-    // DELETE /clientes/{id}
     @DeleteMapping("/clientes/{id}")
-    public ResponseEntity<?> eliminarCliente(@PathVariable Long id) {
-        try {
-            clienteService.delete(id);
-            return ResponseEntity.noContent().build();
-        } catch (DataAccessException e) {
-            Map<String, Object> error = new HashMap<>();
-            error.put("mensaje", "Error al eliminar el cliente en la base de datos");
-            error.put("error", e.getMostSpecificCause().getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
-        }
+    public ResponseEntity<Void> eliminarCliente(@PathVariable Long id) {
+        clienteService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 
-    // GET /clientes/regiones
     @GetMapping("/clientes/regiones")
     public ResponseEntity<List<Region>> listarRegiones() {
         return ResponseEntity.ok(clienteService.findAllRegiones());
     }
 
-    // ── Método auxiliar ───────────────────────────────────────────────────────
     private Map<String, Object> construirErrores(BindingResult result) {
         Map<String, Object> errores = new HashMap<>();
         List<String> listaErrores = result.getFieldErrors()
-            .stream()
-            .map(fe -> "El campo '" + fe.getField() + "' " + fe.getDefaultMessage())
-            .collect(Collectors.toList());
+                .stream()
+                .map(fe -> "El campo '" + fe.getField() + "' " + fe.getDefaultMessage())
+                .collect(Collectors.toList());
         errores.put("errors", listaErrores);
         return errores;
     }
