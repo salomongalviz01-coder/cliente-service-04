@@ -1,8 +1,8 @@
-package com.denkitronik.clienteservice.services;
+package com.denkitronik.clienteservice.domain.services;
 
-import com.denkitronik.clienteservice.entities.Cliente;
-import com.denkitronik.clienteservice.entities.Region;
-import com.denkitronik.clienteservice.repositories.IClienteDao;
+import com.denkitronik.clienteservice.domain.entities.Cliente;
+import com.denkitronik.clienteservice.domain.entities.Region;
+import com.denkitronik.clienteservice.domain.repositories.IClienteDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

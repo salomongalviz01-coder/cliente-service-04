@@ -1,8 +1,8 @@
-package com.denkitronik.clienteservice.controllers;
+package com.denkitronik.clienteservice.delivery.rest;
 
-import com.denkitronik.clienteservice.entities.Cliente;
-import com.denkitronik.clienteservice.entities.Region;
-import com.denkitronik.clienteservice.services.IClienteService;
+import com.denkitronik.clienteservice.domain.entities.Cliente;
+import com.denkitronik.clienteservice.domain.entities.Region;
+import com.denkitronik.clienteservice.domain.services.IClienteService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;

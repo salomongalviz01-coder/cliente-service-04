@@ -1,7 +1,7 @@
-package com.denkitronik.clienteservice.services;
+package com.denkitronik.clienteservice.domain.services;
 
-import com.denkitronik.clienteservice.entities.Cliente;
-import com.denkitronik.clienteservice.entities.Region;
+import com.denkitronik.clienteservice.domain.entities.Cliente;
+import com.denkitronik.clienteservice.domain.entities.Region;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import java.util.List;
